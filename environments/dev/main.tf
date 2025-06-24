@@ -28,19 +28,9 @@ module "vpc" {
 
 module "iam" {
   source     = "../../modules/iam"
-  group_name = "dev-team"
-  user_names = ["Nicol", "Samul"]
-
-  group_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-    "arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess"
-  ]
-
-  default_tags = {
-    Owner       = "Fanoy"
-    Project     = "IAM-Builder"
-    ManagedBy   = "Terraform"
-    Environment = "dev"
-  }
+  group_name           = var.group_name
+  user_names           = var.user_names
+  group_policy_arns    = var.group_policy_arns
+  default_tags         = var.default_tags
 
 }

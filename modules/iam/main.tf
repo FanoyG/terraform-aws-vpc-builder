@@ -17,7 +17,7 @@ resource "aws_iam_user_group_membership" "membership" {
 }
 
 resource "aws_iam_group_policy_attachment" "group_policies" {
-  count      = length(var.group_policy_arns)
+  count      = var.group_policy_arns != [] ? length(var.group_policy_arns) : 0
   group      = aws_iam_group.this.name
   policy_arn = var.group_policy_arns[count.index]
 }

@@ -3,5 +3,5 @@ output "group_name" {
 }
 
 output "users" {
-  value = aws_iam_user.this[*].name
+  value = [for user in aws_iam_user.this : user.name]
 }

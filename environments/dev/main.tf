@@ -31,6 +31,11 @@ module "iam" {
   group_name = "dev-team"
   user_names = ["Nicol", "Samul"]
 
+  group_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+    "arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess"
+  ]
+
   default_tags = {
     Owner       = "Fanoy"
     Project     = "IAM-Builder"

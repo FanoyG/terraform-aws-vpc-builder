@@ -1,0 +1,91 @@
+name: Terraform CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.tf'
+
+  push:
+    branches: [main]
+    paths:
+      - '**/*.tf'
+
+jobs:
+  terraform:
+    name: 🧪 Terraform Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: environments/dev
+
+      - name: Terraform Format Check
+        run: |
+          echo "🔍 Checking format..."
+          terraform fmt -check && echo '✅ Format is clean.'
+        working-directory: environments/dev
+
+      - name: Terraform Validate
+        run: |
+          echo '🧪 Validating config...'
+          terraform validate && echo '✅ Validation passed.'
+        working-directory: environments/dev
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          echo '📖 Showing Terraform plan...'
+          terraform plan -no-color > plan.txt
+          cat plan.txt
+        working-directory: environments/dev
+
+      - name: Comment Plan on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: environments/dev/plan.txt
+
+  apply:
+    name: 🔐 Terraform Apply (on main)
+    runs-on: ubuntu-latest
+    needs: terraform
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+      
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: environments/dev
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: environments/dev

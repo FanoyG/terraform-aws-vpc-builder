@@ -1,0 +1,17 @@
+resource "aws_iam_group" "this" {
+  name = var.group_name
+}
+
+resource "aws_iam_user" "this" {
+  for_each = toset(var.user_names)
+  name = each.value
+
+  tags = var.default_tags
+}
+
+
+resource "aws_iam_user_group_membership" "membership" {
+    for_each = toset(var.user_names)
+    user = each.value
+    groups = [aws_iam_group.this.name]
+}
